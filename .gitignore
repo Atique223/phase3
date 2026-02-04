@@ -126,3 +126,7 @@ frontend/*.log
 # Database
 backend/*.db
 backend/*.db-journal
+
+# Test files with secrets
+backend/test_*.py
+**/test_*_key.py
