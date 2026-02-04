@@ -1,0 +1,6 @@
+# Allow all robots to crawl all pages
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://your-todo-app.com/sitemap.xml

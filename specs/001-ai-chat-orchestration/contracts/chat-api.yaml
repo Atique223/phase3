@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: AI Chat Orchestration API
+  description: Natural language chat interface for todo management using AI agents and MCP tools
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8001/api/v1
+    description: Development server
+  - url: https://api.example.com/api/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /users/{user_id}/chat:
+    post:
+      summary: Send message to AI chat agent
+      description: |
+        Send a natural language message to the AI agent for todo management.
+        The agent interprets user intent, calls appropriate MCP tools, and returns
+        a user-friendly response. Conversation context is automatically managed.
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the authenticated user
+          schema:
+            type: string
+            example: "user_123abc"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              newConversation:
+                summary: Start new conversation
+                value:
+                  message: "show me my tasks"
+                  conversation_id: null
+              continueConversation:
+                summary: Continue existing conversation
+                value:
+                  message: "mark the first one as done"
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Successful response from AI agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                taskCreated:
+                  summary: Task created successfully
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    message:
+                      role: "assistant"
+                      content: "I've created the task 'buy groceries' for you."
+                      created_at: "2026-01-31T12:00:00Z"
+                    metadata:
+                      tool_calls: ["create_task"]
+                      processing_time_ms: 1234
+                tasksList:
+                  summary: Tasks listed
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    message:
+                      role: "assistant"
+                      content: "You have 3 tasks: 1) Buy groceries, 2) Call mom, 3) Finish report"
+                      created_at: "2026-01-31T12:01:00Z"
+                    metadata:
+                      tool_calls: ["list_tasks"]
+                      processing_time_ms: 987
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyMessage:
+                  summary: Empty message
+                  value:
+                    detail: "Message cannot be empty"
+                    error_code: "INVALID_MESSAGE"
+                invalidConversationId:
+                  summary: Invalid conversation ID
+                  value:
+                    detail: "Conversation not found or does not belong to user"
+                    error_code: "INVALID_CONVERSATION"
+        '401':
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingToken:
+                  summary: Missing JWT token
+                  value:
+                    detail: "Unauthorized - Invalid or missing token"
+                    error_code: "MISSING_TOKEN"
+                expiredToken:
+                  summary: Expired JWT token
+                  value:
+                    detail: "Token has expired"
+                    error_code: "EXPIRED_TOKEN"
+        '403':
+          description: Forbidden - user_id mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                userMismatch:
+                  summary: User ID mismatch
+                  value:
+                    detail: "Access denied - you can only access your own conversations"
+                    error_code: "USER_MISMATCH"
+        '500':
+          description: Internal server error - agent or tool failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                agentError:
+                  summary: Agent execution error
+                  value:
+                    detail: "An unexpected error occurred. Please try again."
+                    error_code: "AGENT_ERROR"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token issued by Better Auth
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Natural language message from user
+          minLength: 1
+          maxLength: 10000
+          example: "add a task to buy groceries"
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            Optional conversation ID to continue existing conversation.
+            If null or omitted, a new conversation will be created.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - message
+        - metadata
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: ID of the conversation (new or existing)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          $ref: '#/components/schemas/MessageResponse'
+        metadata:
+          $ref: '#/components/schemas/MessageMetadata'
+
+    MessageResponse:
+      type: object
+      required:
+        - role
+        - content
+        - created_at
+      properties:
+        role:
+          type: string
+          enum: [assistant]
+          description: Message sender role (always 'assistant' for responses)
+          example: "assistant"
+        content:
+          type: string
+          description: Agent's response message
+          example: "I've created the task 'buy groceries' for you."
+        created_at:
+          type: string
+          format: date-time
+          description: Message creation timestamp (ISO 8601)
+          example: "2026-01-31T12:00:00Z"
+
+    MessageMetadata:
+      type: object
+      properties:
+        tool_calls:
+          type: array
+          items:
+            type: string
+          description: List of MCP tools called by agent
+          example: ["create_task", "list_tasks"]
+        processing_time_ms:
+          type: integer
+          description: Time taken to process request in milliseconds
+          example: 1234
+        error:
+          type: string
+          nullable: true
+          description: Error message if tool execution failed
+          example: null
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Unauthorized - Invalid or missing token"
+        error_code:
+          type: string
+          description: Machine-readable error code
+          example: "MISSING_TOKEN"
+
+tags:
+  - name: Chat
+    description: AI chat endpoints for natural language todo management

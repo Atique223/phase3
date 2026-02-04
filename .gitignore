@@ -1,0 +1,128 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache/
+.hypothesis/
+.DS_Store
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+.ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.db-journal
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+.ENV
+env.bak/
+venv.bak/
+
+# FastAPI
+*.db
+*.db-journal
+main.db
+
+# SQLModel
+*.db
+*.db-journal
+
+# Docker
+.dockerignore
+.docker/
+!Dockerfile
+!docker-compose.yml
+
+# Runtime
+db.sqlite3
+db.sqlite3-journal
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Node modules
+frontend/node_modules/
+node_modules/
+
+# Frontend environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.production.local
+frontend/.env.development.local
+frontend/.env.test.local
+
+# Vercel
+frontend/.vercel
+
+# Backend environment
+backend/.env
+backend/.env.local
+
+# Logs
+backend/*.log
+frontend/*.log
+*.log
+
+# Database
+backend/*.db
+backend/*.db-journal
